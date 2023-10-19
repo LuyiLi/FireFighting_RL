@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 import numpy as np
-# import map.py
 
 "global parameters"
 map_l = 15
@@ -9,11 +8,12 @@ map_h = 15
 round_count = 0
 
 int_burning_tensity = 0.2  # Initial burning tensity of grid first catch fire
-spread_burning_tensity = 2  # The threshold to spread fire to adjacent grid
-max_burning_tensity = 4  # Maximun fire tensity
+spread_burning_tensity = 0.6  # The threshold to spread fire to adjacent grid
+spread_prob = 1          # Possibility of spreading
+max_burning_tensity = 2  # Maximun fire tensity
 burning_rate = 0.2  # Burning intensity increase by each round
 
-hp_loss = 0.2  # HP decrease by each round
+hp_loss_multilplier = 1.0  # HP decrease by each round
 fall_prob = 0.5  # Probability of tree to fall down when HP < 1/3
 
 
@@ -27,8 +27,8 @@ fall_prob = 0.5  # Probability of tree to fall down when HP < 1/3
 class MapEnv(object):
 
     # Initialize env
-    def __init__(self, SIZE=(map_l, map_h), PROB_OBS=(0, .5), PROB_FLAME=(.3, .5), HP=((.6, 1.8), (2, 8)),
-                 PROB_FIREINT=((.2, .6), (.2, 1), .8), BIRTH=(2, 3, 3), blank_world=False):
+    def __init__(self, SIZE=(map_l, map_h), PROB_OBS=(0, .5), PROB_FLAME=(.8, .6), HP=((3.6, 8.8), (8, 32)),
+                 PROB_FIREINT=((.2, .6), (.2, 1), .02), BIRTH=(2, 3, 3), blank_world=False):
         """
         Args:
             SIZE: size of a side of the square grid
@@ -231,7 +231,7 @@ class MapEnv(object):
     def reset(self):
         self._setWorld()
 
-    def map_update(self):
+    def mapUpdate(self):
 
         # To calculate the natural influence of burning
         for i in range(map_l):
@@ -239,27 +239,25 @@ class MapEnv(object):
 
                 if self.fire_map[i][j] > 0:
 
-                    self.hp_map[i][j] = max(0, self.hp_map[i][j] - hp_loss)
+                    self.hp_map[i][j] = max(0, self.hp_map[i][j] - fire_map[i][j] * hp_loss_multilplier)
 
                     if self.hp_map[i][j] > 0:
                         # fire increase by the defined rate
-                        self.fire_map[i][j] = max(
+                        self.fire_map[i][j] = min(
                             max_burning_tensity, self.fire_map[i][j] + burning_rate)
                     else:
                         # Fire stops when HP fall below 0
-                        self.fire_map[i][j] = 0
+                        self.hp_map[i][j] = 0.0
+                        self.fire_map[i][j] = 0.0
                         self.flammable_map[i][j] = 0  # Grid become unflammable
 
                 # To calculate catching fire by the adjacent grids which fire tensity> spread_burning_tensity
                 if self.fire_map[i][j] > spread_burning_tensity:
-
-                    for k in range(max(0, i - 1), min(map_l - 1, i + 1)):
-                        if self.flammable_map[k][j] != 0 and self.fire_map[k][j] == 0:
-                            self.fire_map[k][j] = int_burning_tensity
-
-                    for k in range(max(0, j - 1), min(map_h - 1, j + 1)):
-                        if self.flammable_map[i][k] != 0 and self.fire_map[i][k] == 0:
-                            self.fire_map[i][k] = int_burning_tensity
+                    if np.random.rand() < spread_prob:
+                        dx = np.random.choice([-1, 0, 1])
+                        dy = np.random.choice([-1, 0, 1])
+                        if i + dx >= 0 and i + dx < map_l and j + dy >= 0 and j + dy < map_h:
+                            self.fire_map[i+dx][j + dy] = min(int_burning_tensity + self.fire_map[i+dx][j + dy], max_burning_tensity)
 
         # To calculate the influence of map when burning trees fall down
         for i in range(map_l):
@@ -273,7 +271,7 @@ class MapEnv(object):
                 elif self.obstacle_map[i][j] != 1:
                     continue
 
-                elif self.hp_map[i][j] >= self.int_hp[i][j] / 3:  # Only when hp< 1/3 will fall down
+                elif self.hp_map[i][j] >= self.hp_map_init[i][j] / 3:  # Only when hp< 1/3 will fall down
                     continue
 
                 # Consider fall down probability
@@ -348,6 +346,13 @@ class MapEnv(object):
         plt.axis()
         plt.show()
 
+    def plotFireMap(self):
+        plt.imshow(self.fire_map, cmap='viridis')
+        # plt.imshow(env, cmap=cmap)
+        plt.colorbar(label='Color Scale')
+        plt.axis()
+        plt.show()
+
     def plotAll(self):
         cmap = plt.matplotlib.colors.ListedColormap(['white', 'blue', 'red', 'lightgreen', 'black',
                                                      'yellow', 'yellow', 'darkgreen'])
@@ -359,57 +364,13 @@ class MapEnv(object):
         plt.axis()
         plt.show()
 
+if __name__ == "__main__":
+    env = MapEnv()  # Map initialization
+    hp_map_init = env.getHPInit()
 
-class MapUpdate(object):
-
-    def __init__(self, obstacle_map, fire_map, hp_map, flammable_map, hp_map_init):
-
-        # self.MapEnv = MapEnv()
-        self.obstacle_map = obstacle_map
-        self.fire_map = fire_map
-        self.hp_map = hp_map
-        self.int_hp = hp_map_init
-        self.flammable_map = flammable_map
-
-
-
-        return self.obstacle_map, self.fire_map, self.hp_map, self.flammable_map
-
-    def getObstacle(self):
-        return self.obstacle_map
-
-    def getFlammable(self):
-        return self.flammable_map
-
-    def getHP(self):
-        return self.hp_map
-
-    def getHPInit(self):
-        return self.hp_map_init
-
-    def getFireInt(self):
-        return self.fire_map
-
-    def getAll(self):
-        return self.obstacle_map, self.fire_map, self.hp_map, self.flammable_map
-
-    def round_update(self, round_count):
-
-        round_count += 1
-        print('The map has been updated for', str(round_count), 'rounds')
-        return round_count
-
-
-
-env = MapEnv() #Map initialization
-hp_map_init = env.getHPInit()
-
-# MapEnv will return self.obstacle_map,  self.agent_map, self.station_map, self.flammable_map, self.hp_map, self.fire_map
-obstacle_map, agent_map, station_map, flammable_map, hp_map, fire_map = env.getAll()
-
-
-for r in range(10):
-    env_update =  MapUpdate(obstacle_map, fire_map, hp_map, flammable_map, hp_map_init)
-    #MapUpdate will return self.obstacle_map, self.fire_map, self.hp_map, self.flammable_map
-    obstacle_map, fire_map, hp_map, flammable_map  = env_update.getAll() 
-    round_count = env_update.round_update(round_count)
+    # MapEnv will return self.obstacle_map,  self.agent_map, self.station_map, self.flammable_map, self.hp_map, self.fire_map
+    obstacle_map, agent_map, station_map, flammable_map, hp_map, fire_map = env.getAll()
+    for r in range(20):
+        env.mapUpdate()
+        env.plotFireMap()
+        # env.plotAll()
