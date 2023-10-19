@@ -69,18 +69,17 @@ class MapEnv(object):
         Soil:  obstacle=0, flammable=0;
         """
         if self.BIRTH[2] > self.BIRTH[0]*self.BIRTH[1]:
-            raise ValueError(
-                "The number of agents excesses birthplace dimensions, no valid map returned! ")
+            raise ValueError("The number of agents excesses birthplace dimensions, no valid map returned! ")
         else:
-            self._obstacle_map = self._setObstacle()  # 0=passable, 1=obstacle
+            self._obstacle_map = self._setObstacle() # 0=passable, 1=obstacle
             self._station_row, self._station_col = 0, 0
-            self.station_map, self.agent_map = self._setAgent()  # 0=free space, 1=agent
+            self._init_pose = [] # Initial pose
+            self.station_map, self.agent_map = self._setAgent() # 0=free space, 1=agent
 
-            # [[flammable free space (grass) idxs], [flammable obstacle (tree) idxs]]
-            self._flammable_idx = [[], []]
+            self._flammable_idx = [[], []] # [[flammable free space (grass) idxs], [flammable obstacle (tree) idxs]]
             self._flammable_map = self._setFlammable()
             self._hp_map = self._setHP()
-            self._fire_map = self._setFire()  # fire intensity
+            self._fire_map = self._setFire() # fire intensity
             self.obstacle_map, self.flammable_map, self.hp_map, self.fire_map = self._mergeMap()
             self.hp_map_init = self.hp_map.copy()
 
@@ -94,24 +93,26 @@ class MapEnv(object):
         return obstacle_map
 
     # Setup agent birthplace (recharging station) & initial position
-
     def _setAgent(self):
         [row, col] = [np.random.randint(0, self.SIZE[0]-self.BIRTH[0]+1),
                       np.random.randint(0, self.SIZE[1]-self.BIRTH[1]+1)]
         self._station_row, self._station_col = row, col
         # Birthplace
         station_map = np.zeros_like(self._obstacle_map)
-        station = np.ones((self.BIRTH[0], self.BIRTH[1]))
+        station = np.ones((self.BIRTH[0],self.BIRTH[1]))
         station_map[row:row+self.BIRTH[0], col:col+self.BIRTH[1]] = station
         # Intial position
         agent_map = np.zeros_like(self._obstacle_map)
-        agent = np.zeros((self.BIRTH[0], self.BIRTH[1]))
+        agent = np.zeros((self.BIRTH[0],self.BIRTH[1]))
         agent_num = self.BIRTH[2]
-        indices = np.random.choice(
-            self.BIRTH[0] * self.BIRTH[1], agent_num, replace=False)
+        indices = np.random.choice(self.BIRTH[0] * self.BIRTH[1], agent_num, replace=False)
         agent.ravel()[indices] = 1
         agent_map[row:row+self.BIRTH[0], col:col+self.BIRTH[1]] = agent
+        for i in indices:
+            agent_idx = [row+int(i/self.BIRTH[1]), col+i%self.BIRTH[1]]
+            self._init_pose.append(agent_idx)
         return station_map, agent_map
+
 
     # Randomize flammable grids
 
@@ -222,11 +223,14 @@ class MapEnv(object):
     def getHPInit(self):
         return self.hp_map_init
 
-    def getFireInt(self):
+    def getFire(self):
         return self.fire_map
 
     def getAll(self):
         return self.obstacle_map,  self.agent_map, self.station_map, self.flammable_map, self.hp_map, self.fire_map
+
+    def getInitPose(self):
+        return self._init_pose
 
     def reset(self):
         self._setWorld()
@@ -359,7 +363,7 @@ class MapEnv(object):
         plt.figure(figsize=(self.SIZE[0], self.SIZE[1]))
         env = self.station_map + self.agent_map + \
             self.obstacle_map*4 + self.flammable_map*3
-        print(env)
+        # print(env)
         plt.imshow(env, cmap=cmap)
         plt.axis()
         plt.show()
@@ -370,7 +374,8 @@ if __name__ == "__main__":
 
     # MapEnv will return self.obstacle_map,  self.agent_map, self.station_map, self.flammable_map, self.hp_map, self.fire_map
     obstacle_map, agent_map, station_map, flammable_map, hp_map, fire_map = env.getAll()
-    for r in range(20):
-        env.mapUpdate()
-        env.plotFireMap()
+    for r in range(2):
+        # env.mapUpdate()
+        print(env.getInitPose())
+        env.plotAll()
         # env.plotAll()

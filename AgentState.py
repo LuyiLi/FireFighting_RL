@@ -3,59 +3,54 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import numpy as np
-
+import MapEnv
 NORTH = 1
 SOUTH = 2
 EAST = 3
 WEST = 4
 
-REWARD_COLLISION_OBSTACLES = -1
-REWARD_COLLISION_AGENTS = -1
-REWARD_SUCCESSFUL_MOVEMENT = 0.05
-REWARD_WATER_SPRAY = -0.2
-REWARD_FIRE_FOUGHT_MAGNIFICATION = 1
 
-map_l = 4
-map_h = 4
-
-obstacle_map = np.array((map_l, map_h))
-fire_map = np.array((map_l, map_h))
-agents_map = np.array((map_l, map_h))
-hp_map = np.array((map_l, map_h))
+class Reward(object):
+    REWARD_COLLISION_OBSTACLES = -1
+    REWARD_COLLISION_AGENTS = -1
+    REWARD_SUCCESSFUL_MOVEMENT = 0.05
+    REWARD_WATER_SPRAY = -0.2
+    REWARD_FIRE_FOUGHT_MAGNIFICATION = 1
+    REWARD_EPOCH_SUCCESS = 10
+    REWARD_EPOCH_UNSUCCESSFUL = -5
+    REWARD_DO_NOTHING = -0.05
+    REWARD_WATER_DEPLETION = -1
 
 
 class AgentState(object):
-    def __init__(self):
-        self.pos_x = 0
-        self.pos_y = 0
+    def __init__(self, map_env: MapEnv, pos_x, pox_y):
+        self.pos_x = pos_x
+        self.pos_y = pox_y
+        self.map = map_env
         self.bias_x = 0
         self.bias_y = 0
         self.water_reserve = 10
         self.observation_size = 11
 
-    def reset(self):
-        # TODO: Set the position of the agent
-        self.water_reserve = 10
-
     def step(self, action):
         """
         One step of the agent
-        @param action: A dictionary with direction(0-4), water range(0-5), water direction(0-4), and help beacon(0,1)
+        @param action: A array with direction(0-4), water range(0-5), water direction(0-4), and help beacon(0,1)
         @return: Agent state, Agent reward
         """
-        direction = action['direction']
-        water_range = action['water_range']
-        water_direction = action['water_direction']
-        help_beacon = action['help_beacon']
+        direction = action[0]
+        water_range = action[1]
+        water_direction = action[2]
+        help_beacon = action[3]
 
         if direction:
             _, reward = self._move(direction)
         else:
-            _, reward = self._spray(water_direction, water_range, fire_map)
+            reward = self._spray(water_direction, water_range, self.map.fire_map)
         if help_beacon:
             self._help_beacon()
 
-        return self._observe(agents_map, fire_map, agents_map, hp_map),  reward
+        return self.observe(), reward
 
 
     def _getXYDirection(self, direction):
@@ -87,15 +82,17 @@ class AgentState(object):
         dx, dy = self._getXYDirection(direction)
 
         reward = 0
-        move_result = self._checkCollision(0, -1, obstacle_map, agents_map)
+        move_result = self._checkCollision(dx, dy, self.map.obstacle_map, self.map.agent_map)
         if not move_result:
+            self.map.agent_map[self.pos_x][self.pos_y] = 0
             self.pos_x += dx
             self.pos_y += dy
-            reward = REWARD_SUCCESSFUL_MOVEMENT
+            self.map.agent_map[self.pos_x][self.pos_y] = 1
+            reward = Reward.REWARD_SUCCESSFUL_MOVEMENT
         elif move_result == -2:
-            reward = REWARD_COLLISION_OBSTACLES
+            reward = Reward.REWARD_COLLISION_OBSTACLES
         elif move_result == -3:
-            reward = REWARD_COLLISION_AGENTS
+            reward = Reward.REWARD_COLLISION_AGENTS
         # TODO: Add water supply algorithm
         return move_result, reward
 
@@ -112,7 +109,7 @@ class AgentState(object):
         new_map_y = self.pos_y + dy + self.bias_y
 
         # Test if out of boundary
-        if new_map_x >= map_l or new_map_x < 0 or new_map_y >= map_h or new_map_y < 0:
+        if new_map_x >= self.map.SIZE[0] or new_map_x < 0 or new_map_y >= self.map.SIZE[1] or new_map_y < 0:
             return -1
         # Test if collide with obstacles
         if obstacle_map[new_map_x][new_map_y]:
@@ -123,16 +120,18 @@ class AgentState(object):
 
         return 0
 
-    def _observe(self, obstacle_map, fire_map, agents_map, flammable_map):
+    def observe(self):
         """
         The function for the agent to observe its surroundings
-        @param obstacle_map: Global newest obstacle_map
-        @param fire_map: Global newest fire_map
-        @param agents_map: Global newest agents_map
-        @param flammable_map: Global newest hp_map
+        @param: obstacle_map: Global newest obstacle_map
         @return: The state of the agent as the agent state in the documentation
         """
         state = []
+        obstacle_map = self.map.getObstacle()
+        fire_map = self.map.getFire()
+        agents_map = self.map.getAgent()
+        flammable_map = self.map.getFlammable()
+
         top_left = (self.pos_x - self.observation_size // 2, self.pos_y - self.observation_size // 2)
         bottom_right = (top_left[0] + self.observation_size, top_left[1] + self.observation_size)
         obs_shape = (self.observation_size, self.observation_size)
@@ -144,7 +143,7 @@ class AgentState(object):
 
         for i in range(top_left[0], top_left[0] + self.observation_size):
             for j in range(top_left[1], top_left[1] + self.observation_size):
-                if i >= map_l or i < 0 or j >= map_h or j < 0:
+                if i >= self.map.SIZE[0] or i < 0 or j >= self.map.SIZE[1] or j < 0:
                     # out of bounds, just treat as an obstacle
                     obs_map[i - top_left[0], j - top_left[1]] = 1
                     continue
@@ -165,14 +164,17 @@ class AgentState(object):
 
     def _spray(self, water_direction, water_range, fire_map):
         """
-        The agent spray water in the coressponding direction
+        The agent spray water in the corresponding direction
         @param water_direction: Direction to spray water
         @param water_range: Range of the water spray
         @param fire_map: The map containing fire information
         @return: The reward of this action
         """
         if not self.water_reserve:
-            return -1
+            return Reward.REWARD_WATER_DEPLETION
+
+        if water_direction == 0:
+            return Reward.REWARD_DO_NOTHING
 
         if water_range == 1:
             water_spray = [[1]]
@@ -196,6 +198,8 @@ class AgentState(object):
                            [0.03, 0.09, 0.32, 0.09, 0.03],
                            [0.01, 0.02, 0.09, 0.03, 0.00],
                            [0.00, 0.01, 0.03, 0.01, 0.00]]
+        else:
+            return Reward.REWARD_DO_NOTHING
 
         # Specify the spraying center
         dx, dy = self._getXYDirection(water_direction)
@@ -204,19 +208,19 @@ class AgentState(object):
         center_y = self.pos_y + dy * water_range + self.bias_y
 
         reward = 0
-        l = len(water_range)
-        spray_biased_x, spray_biased_y = center_x - l/2 + 0.5, center_y - l/2 + 0.5
+        l = len(water_spray)
+        spray_biased_x, spray_biased_y = int(center_x - l/2 + 0.5), int(center_y - l/2 + 0.5)
         for i in range(l):
             for j in range(l):
                 x = spray_biased_x + i
                 y = spray_biased_y + j
-                if x >= map_l or x < 0 or y >= map_h or y < 0:
+                if x >= self.map.SIZE[0] or x < 0 or y >= self.map.SIZE[1] or y < 0:
                     continue
                 else:
                     reward += (fire_map[x][y] - max(0, fire_map[x][y] - water_spray[i][j]))
                     fire_map[x][y] = max(0, fire_map[x][y] - water_spray[i][j])
 
-        reward *= REWARD_FIRE_FOUGHT_MAGNIFICATION
+        reward *= Reward.REWARD_FIRE_FOUGHT_MAGNIFICATION
         self.water_reserve -= 1
         return reward
 
