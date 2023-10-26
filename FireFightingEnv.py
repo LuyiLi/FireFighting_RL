@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from gym.core import ActType, ObsType
+# from gym.core import ActType, ObsType
 import numpy as np
 import AgentState
 import MapEnv
@@ -26,6 +26,7 @@ class FFEnv(gym.Env):
         for i in range(self.agent_num):
             self.agents.append(AgentState.AgentState(self.mapEnv, init_pose[i][0], init_pose[i][1]))
             self.observe_space.append(self.agents[i].observe())
+        return self.observe_space
 
     def step(self, action):
         for i, a in enumerate(self.agents):

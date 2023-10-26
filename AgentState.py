@@ -160,6 +160,8 @@ class AgentState(object):
                     # if terrain is flammable
                     fir_map[i - top_left[0], j - top_left[1]] = fire_map[i, j]
         state = [obs_map, fir_map, agt_map, fla_map, self.water_reserve]
+        # Perhaps we need to select the following expression...
+        # state = [[obs_map, fir_map, agt_map, fla_map], [self.water_reserve]]
         return state
 
     def _spray(self, water_direction, water_range, fire_map):

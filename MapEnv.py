@@ -183,7 +183,8 @@ class MapEnv(object):
                     tree_burn, p=tree_prob), decimals=1)
         return fire_map
 
-    #
+    # Merge station map with others
+    
     def _mergeMap(self):
         station_obs = np.zeros((self.BIRTH[0], self.BIRTH[1]))
         # Merge obstacle map & birthplace
@@ -204,7 +205,8 @@ class MapEnv(object):
                  self._station_col:self._station_col+self.BIRTH[1]] = station_obs
         return obstacle_map, flammable_map, hp_map, fire_map
 
-    #
+    # get map matrices, initial agent coordinates, and reset world
+
     def getObstacle(self):
         return self.obstacle_map
 
