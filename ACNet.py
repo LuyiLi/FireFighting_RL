@@ -45,12 +45,18 @@ class ACNet:
 
 
         if TRAINING:
+            # 4 parameter to describe 1 action
+            # Moving direction, spraying distance, spraying direction, help bacon
             self.actions                = tf.placeholder(shape=[None], dtype=tf.int32) # [a_1, a_2, ..., a_T], exp. [2,3]
             self.actions_onehot         = tf.one_hot(self.actions, a_size, dtype=tf.float32) # [ [0,0,1,0,0], [0,0,0,1,0] ]
+            # print(np.shape(self.actions_onehot))
             # self.train_valid            = tf.placeholder(shape=[None,a_size], dtype=tf.float32)  # [1,0,0,1,0]
             self.target_v               = tf.placeholder(tf.float32, [None], 'Vtarget') # [v_1, v_2, v_3, ..., v_T]
+            # print(np.shape(self.target_v))
             self.advantages             = tf.placeholder(shape=[None], dtype=tf.float32) # [A_1, A_2, ..., A_T]
+            # print(np.shape(self.advantages))
             self.responsible_outputs    = tf.reduce_sum(self.policy * self.actions_onehot, [1]) # [ p(a_1), p(a_2), .., p(a_T) ]
+            # print(np.shape(self.responsible_outputs))
 
             # Loss Functions
             self.value_loss    = 0.5 * tf.reduce_sum(tf.square(self.target_v - tf.reshape(self.value, shape=[-1])))
