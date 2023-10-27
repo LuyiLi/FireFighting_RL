@@ -29,6 +29,11 @@ class FFEnv(gym.Env):
         return self.observe_space
 
     def step(self, action):
+        """
+        One step of the environment and all agents
+        :param action: A list of actions for each agent
+        :return: The observation of all agents, reward of all agents, if the sequence is finished
+        """
         for i, a in enumerate(self.agents):
             self.observe_space[i], self.rewards[i] = a.step(action[i])
 
