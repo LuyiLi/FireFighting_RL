@@ -40,12 +40,14 @@ class ACNet:
             h_in = tf.placeholder(tf.float32, [1, RNN_SIZE]) # 1x128, current state/memory
             self.state_in = tf.nn.rnn_cell.LSTMStateTuple(c_in, h_in)
 
-            self.policy, self.value, self.state_out, self.valids = self._build_net(self.myinput,self.water_res,RNN_SIZE,a_size)
+            # self.policy, self.value, self.state_out, self.valids = self._build_net(self.myinput,self.water_res,RNN_SIZE,a_size)
+            self.policy, self.value, self.state_out, _ = self._build_net(self.myinput,self.water_res,RNN_SIZE,a_size)
+
 
         if TRAINING:
             self.actions                = tf.placeholder(shape=[None], dtype=tf.int32) # [a_1, a_2, ..., a_T], exp. [2,3]
             self.actions_onehot         = tf.one_hot(self.actions, a_size, dtype=tf.float32) # [ [0,0,1,0,0], [0,0,0,1,0] ]
-            self.train_valid            = tf.placeholder(shape=[None,a_size], dtype=tf.float32)  # [1,0,0,1,0]
+            # self.train_valid            = tf.placeholder(shape=[None,a_size], dtype=tf.float32)  # [1,0,0,1,0]
             self.target_v               = tf.placeholder(tf.float32, [None], 'Vtarget') # [v_1, v_2, v_3, ..., v_T]
             self.advantages             = tf.placeholder(shape=[None], dtype=tf.float32) # [A_1, A_2, ..., A_T]
             self.responsible_outputs    = tf.reduce_sum(self.policy * self.actions_onehot, [1]) # [ p(a_1), p(a_2), .., p(a_T) ]
@@ -54,9 +56,10 @@ class ACNet:
             self.value_loss    = 0.5 * tf.reduce_sum(tf.square(self.target_v - tf.reshape(self.value, shape=[-1])))
             self.entropy       = - 0.01 * tf.reduce_sum(self.policy * tf.log(tf.clip_by_value(self.policy,1e-10,1.0)))
             self.policy_loss   = - tf.reduce_sum(tf.log(tf.clip_by_value(self.responsible_outputs,1e-15,1.0)) * self.advantages)
-            self.valid_loss    = - 0.5 * tf.reduce_sum(tf.log(tf.clip_by_value(self.valids,1e-10,1.0)) *\
-                                self.train_valid + tf.log(tf.clip_by_value(1 - self.valids,1e-10,1.0)) * (1 - self.train_valid))
-            self.loss          = self.value_loss + self.policy_loss - self.entropy + self.valid_loss
+            # self.valid_loss    = - 0.5 * tf.reduce_sum(tf.log(tf.clip_by_value(self.valids,1e-10,1.0)) *\
+                                # self.train_valid + tf.log(tf.clip_by_value(1 - self.valids,1e-10,1.0)) * (1 - self.train_valid))
+            # self.loss          = self.value_loss + self.policy_loss - self.entropy + self.valid_loss
+            self.loss          = self.value_loss + self.policy_loss - self.entropy
 
             # Get gradients from local network using local losses and
             # normalize the gradients using clipping
