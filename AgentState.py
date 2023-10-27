@@ -35,20 +35,16 @@ class AgentState(object):
     def step(self, action):
         """
         One step of the agent
-        @param action: A array with direction(0-4), water range(0-5), water direction(0-4), and help beacon(0,1)
+        @param action: An array indicating the direction of agents (0-4), and the action (0: Move 1: Spray water)
         @return: Agent state, Agent reward
         """
         direction = action[0]
-        water_range = action[1]
-        water_direction = action[2]
-        help_beacon = action[3]
-
-        if direction:
+        if action[1] == 0:
             _, reward = self._move(direction)
-        else:
-            reward = self._spray(water_direction, water_range, self.map.fire_map)
-        if help_beacon:
-            self._help_beacon()
+        elif action[1] == 1:
+            reward = self._spray(water_direction=direction, water_range=2, fire_map=self.map.fire_map)
+        # if help_beacon:
+        #     self._help_beacon()
         # TODO: Add terminal code for robot catching fire
 
         return self.observe(), reward
