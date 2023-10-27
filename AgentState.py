@@ -49,6 +49,7 @@ class AgentState(object):
             reward = self._spray(water_direction, water_range, self.map.fire_map)
         if help_beacon:
             self._help_beacon()
+        # TODO: Add terminal code for robot catching fire
 
         return self.observe(), reward
 
