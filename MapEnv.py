@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 import numpy as np
+import imageio
+import io
 
 "global parameters"
 map_l = 15
@@ -227,6 +229,10 @@ class MapEnv(object):
 
     def getFire(self):
         return self.fire_map
+    
+    def getEnv(self):
+        env = self.obstacle_map * 2 + self.flammable_map
+        return env
 
     def getAll(self):
         return self.obstacle_map,  self.agent_map, self.station_map, self.flammable_map, self.hp_map, self.fire_map
@@ -245,7 +251,7 @@ class MapEnv(object):
 
                 if self.fire_map[i][j] > 0:
 
-                    self.hp_map[i][j] = max(0, self.hp_map[i][j] - fire_map[i][j] * hp_loss_multilplier)
+                    self.hp_map[i][j] = max(0, self.hp_map[i][j] - self.fire_map[i][j] * hp_loss_multilplier)
 
                     if self.hp_map[i][j] > 0:
                         # fire increase by the defined rate
@@ -353,10 +359,11 @@ class MapEnv(object):
         plt.show()
 
     def plotFireMap(self):
-        plt.imshow(self.fire_map, cmap='viridis')
-        # plt.imshow(env, cmap=cmap)
-        plt.colorbar(label='Color Scale')
-        plt.axis()
+        plt.imshow(self.fire_map, cmap='hot', interpolation='nearest', origin='lower', aspect='auto')
+        plt.colorbar(label='Burning Intensity')
+        vmin, vmax = self.fire_map.min(), self.fire_map.max()
+        plt.clim(vmin, vmax)
+        plt.title('Fire Map')
         plt.show()
 
     def plotAll(self):
@@ -369,6 +376,32 @@ class MapEnv(object):
         plt.imshow(env, cmap=cmap)
         plt.axis()
         plt.show()
+
+    # For GIF creation
+    def figEnv(self):    
+        cmap = plt.matplotlib.colors.ListedColormap(
+            ['white', 'lightgreen', 'black', 'darkgreen'])
+        plt.figure(figsize=(self.SIZE[0], self.SIZE[1]))
+        env = self.obstacle_map * 2 + self.flammable_map
+        plt.imshow(env, cmap=cmap)
+        plt.axis()
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close()
+        buf.seek(0)
+        return imageio.imread(buf)
+    
+    def figFire(self):
+        plt.imshow(self.fire_map, cmap='hot', interpolation='nearest', origin='lower', aspect='auto')
+        plt.colorbar(label='Burning Intensity')
+        vmin, vmax = self.fire_map.min(), self.fire_map.max()
+        plt.clim(vmin, vmax)
+        plt.title('Fire Map')
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close()
+        buf.seek(0)
+        return imageio.imread(buf)
 
 if __name__ == "__main__":
     env = MapEnv()  # Map initialization
