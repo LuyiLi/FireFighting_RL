@@ -37,6 +37,8 @@ class FFEnv():
         for i, a in enumerate(self.agents):
             self.observe_space[i], self.rewards[i] = a.step(action[i])
 
+        self.mapEnv.mapUpdate()
+
         if np.sum(self.mapEnv.getFire()) == 0:
             for i, a in enumerate(self.rewards):
                 self.rewards[i] = AgentState.Reward.REWARD_EPOCH_SUCCESS
