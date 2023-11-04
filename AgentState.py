@@ -3,6 +3,7 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import numpy as np
+import a_star
 import MapEnv
 NORTH = 1
 SOUTH = 2
@@ -35,20 +36,20 @@ class AgentState(object):
     def step(self, action):
         """
         One step of the agent
-        @param action: A array with direction(0-4), water range(0-5), water direction(0-4), and help beacon(0,1)
+        @param action: A array with direction(0-4) and agent move or spray water(0,1) * Move in 0 direction means return to home
         @return: Agent state, Agent reward
         """
         direction = action[0]
-        water_range = action[1]
-        water_direction = action[2]
-        help_beacon = action[3]
+        water_range = 1
+        water_direction = action[0]
+        # help_beacon = action[3]
 
-        if direction:
+        if not action[1]:
             _, reward = self._move(direction)
         else:
             reward = self._spray(water_direction, water_range, self.map.fire_map)
-        if help_beacon:
-            self._help_beacon()
+        # if help_beacon:
+        #     self._help_beacon()
         # TODO: Add terminal code for robot catching fire
 
         return self.observe(), reward
@@ -80,9 +81,20 @@ class AgentState(object):
         @return: 0 if successful, other if unsuccessful; Reward of the movement
         """
         move_result = 0
-        dx, dy = self._getXYDirection(direction)
-
         reward = 0
+        
+        if direction == 0:
+            if self.pos_x == self.map.water_pose[0] and self.pos_y == self.map.water_pose[1]:
+                reward = Reward.REWARD_DO_NOTHING
+                move_result = -1
+                
+            else:
+                a_star = a_star.AStar(self.map.fire_map + self.map.obstacle_map, [self.pos_x, self.pos_y], self.map.water_pose)
+                #TODO: Check this
+                dx, dy = a_star.Run()
+        else:
+            dx, dy = self._getXYDirection(direction)
+        
         move_result = self._checkCollision(dx, dy, self.map.obstacle_map, self.map.agent_map)
         if not move_result:
             self.map.agent_map[self.pos_x][self.pos_y] = 0

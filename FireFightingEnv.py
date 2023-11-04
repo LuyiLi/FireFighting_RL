@@ -4,10 +4,10 @@ from typing import Tuple
 import numpy as np
 import AgentState
 import MapEnv
-import gym
 
 
-class FFEnv(gym.Env):
+
+class FFEnv():
     def __init__(self, agent_num):
         self.mapEnv = MapEnv.MapEnv(BIRTH=(2, 3, agent_num))
         self.agent_num = agent_num
