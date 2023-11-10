@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.init as init
 import torch.nn.functional as F
 
 
@@ -92,7 +93,10 @@ class ACNet(nn.Module):
         h2 = F.relu(self.fc2(h1))
         self.h3 = F.relu(self.fc3(h2 + hidden_input))
 
-        rnn_in = self.h3.unsqueeze(0)
+        # rnn_in = self.h3.unsqueeze(0)
+        # TODO: Modify time step HERE.
+        sequence_length = 1
+        rnn_in = self.h3.unsqueeze(0).unsqueeze(0).expand(sequence_length, -1, -1)
         lstm_out, lstm_state = self.lstm(rnn_in)
         lstm_c, lstm_h = lstm_state
         state_out = (lstm_c[:1, :], lstm_h[:1, :])
@@ -104,3 +108,15 @@ class ACNet(nn.Module):
         value = self.fc_value(rnn_out)
 
         return policy, value, state_out, policy_sig
+    
+    # Function for weights initialization
+    def weights_init(m):
+        if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+            init.xavier_uniform_(m.weight.data)
+            init.constant_(m.bias.data, 0)
+        elif isinstance(m, nn.LSTM):
+            for param in m.parameters():
+                if len(param.shape) >= 2:
+                    init.orthogonal_(param.data)
+                else:
+                    init.constant_(param.data, 0)
