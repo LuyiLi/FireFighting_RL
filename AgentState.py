@@ -84,9 +84,9 @@ class AgentState(object):
         reward = 0
         
         if direction == 0:
-            if self.pos_x == self.map.water_pose[0] and self.pos_y == self.map.water_pose[1]:
+            if self.pos_x == self.map.water_pose[0] and self.pos_y == self.map.water_pose[1]: # TODO: Change this to when water tank is full
                 reward = Reward.REWARD_DO_NOTHING
-                move_result = -1
+                move_result = -1 
                 
             else:
                 a_s = astar.AStar()
@@ -94,8 +94,8 @@ class AgentState(object):
                 dx, dy = a_s.Run(self.map.fire_map + self.map.obstacle_map, [self.pos_x, self.pos_y], self.map.water_pose)
         else:
             dx, dy = self._getXYDirection(direction)
-        
-        move_result = self._checkCollision(dx, dy, self.map.obstacle_map, self.map.agent_map)
+            move_result = self._checkCollision(dx, dy, self.map.obstacle_map, self.map.agent_map)
+            
         if not move_result:
             self.map.agent_map[self.pos_x][self.pos_y] = 0
             self.pos_x += dx
