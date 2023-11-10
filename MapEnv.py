@@ -58,6 +58,7 @@ class MapEnv(object):
         self.BIRTH = BIRTH
         self.fresh = True
         self.finished = False
+        self.water_pose = [0,0] # TODO: Change it on init
 
         # Initialize task world
         self._setWorld()
