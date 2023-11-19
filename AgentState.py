@@ -3,12 +3,13 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import numpy as np
-import a_star
+import astar
 import MapEnv
 NORTH = 1
 SOUTH = 2
 EAST = 3
 WEST = 4
+water_range = 2
 
 
 class Reward(object):
@@ -32,6 +33,7 @@ class AgentState(object):
         self.bias_y = 0
         self.water_reserve = 10
         self.observation_size = 11
+        
 
     def step(self, action):
         """
@@ -40,7 +42,6 @@ class AgentState(object):
         @return: Agent state, Agent reward
         """
         direction = action[0]
-        water_range = 1
         water_direction = action[0]
         # help_beacon = action[3]
 
@@ -53,7 +54,6 @@ class AgentState(object):
         # TODO: Add terminal code for robot catching fire
 
         return self.observe(), reward
-
 
     def _getXYDirection(self, direction):
         """
@@ -84,18 +84,18 @@ class AgentState(object):
         reward = 0
         
         if direction == 0:
-            if self.pos_x == self.map.water_pose[0] and self.pos_y == self.map.water_pose[1]:
+            if self.pos_x == self.map.water_pose[0] and self.pos_y == self.map.water_pose[1]: # TODO: Change this to when water tank is full
                 reward = Reward.REWARD_DO_NOTHING
-                move_result = -1
+                move_result = -1 
                 
             else:
-                a_star = a_star.AStar(self.map.fire_map + self.map.obstacle_map, [self.pos_x, self.pos_y], self.map.water_pose)
+                a_s = astar.AStar()
                 #TODO: Check this
-                dx, dy = a_star.Run()
+                dx, dy = a_s.Run(self.map.fire_map + self.map.obstacle_map, [self.pos_x, self.pos_y], self.map.water_pose)
         else:
             dx, dy = self._getXYDirection(direction)
-        
-        move_result = self._checkCollision(dx, dy, self.map.obstacle_map, self.map.agent_map)
+            move_result = self._checkCollision(dx, dy, self.map.obstacle_map, self.map.agent_map)
+            
         if not move_result:
             self.map.agent_map[self.pos_x][self.pos_y] = 0
             self.pos_x += dx
@@ -108,6 +108,13 @@ class AgentState(object):
             reward = Reward.REWARD_COLLISION_AGENTS
         # TODO: Add water supply algorithm
         return move_result, reward
+
+    def _move_to(self, x, y):
+        self.map.agent_map[self.pos_x][self.pos_y] = 0
+        self.pos_x = x
+        self.pos_y = y
+        self.map.agent_map[self.pos_x][self.pos_y] = 1
+
 
     def _checkCollision(self, dx, dy, obstacle_map, agents_map):
         """
@@ -192,30 +199,31 @@ class AgentState(object):
             return Reward.REWARD_DO_NOTHING
 
         if water_range == 1:
-            water_spray = [[1]]
+            water_spray = np.array([[1]])
         elif water_range == 2:
-            water_spray = [[0, 0.1, 0], [0.1, 0.6, 0.1], [0, 0.1, 0]]
+            water_spray = np.array([[0, 0.1, 0], [0.1, 0.6, 0.1], [0, 0.1, 0]])
         elif water_range == 3:
-            water_spray = [[0.00, 0.00, 0.01, 0.00, 0.00],
+            water_spray = np.array([[0.00, 0.00, 0.01, 0.00, 0.00],
                            [0.00, 0.01, 0.10, 0.01, 0.00],
                            [0.01, 0.10, 0.52, 0.10, 0.01],
                            [0.00, 0.01, 0.10, 0.01, 0.00],
-                           [0.00, 0.00, 0.01, 0.00, 0.00]]
+                           [0.00, 0.00, 0.01, 0.00, 0.00]])
         elif water_range == 4:
-            water_spray = [[0.00, 0.01, 0.02, 0.01, 0.00],
+            water_spray = np.array([[0.00, 0.01, 0.02, 0.01, 0.00],
                            [0.01, 0.02, 0.09, 0.02, 0.01],
                            [0.02, 0.09, 0.40, 0.09, 0.02],
                            [0.01, 0.02, 0.09, 0.02, 0.01],
-                           [0.00, 0.01, 0.02, 0.01, 0.00]]
+                           [0.00, 0.01, 0.02, 0.01, 0.00]])
         elif water_range == 5:
-            water_spray = [[0.00, 0.01, 0.03, 0.01, 0.00],
+            water_spray = np.array([[0.00, 0.01, 0.03, 0.01, 0.00],
                            [0.01, 0.03, 0.09, 0.03, 0.01],
                            [0.03, 0.09, 0.32, 0.09, 0.03],
                            [0.01, 0.02, 0.09, 0.03, 0.00],
-                           [0.00, 0.01, 0.03, 0.01, 0.00]]
+                           [0.00, 0.01, 0.03, 0.01, 0.00]])
         else:
             return Reward.REWARD_DO_NOTHING
-
+        # Add an amplifier
+        water_spray *= 2 
         # Specify the spraying center
         dx, dy = self._getXYDirection(water_direction)
 

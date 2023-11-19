@@ -58,6 +58,7 @@ class MapEnv(object):
         self.BIRTH = BIRTH
         self.fresh = True
         self.finished = False
+        self.water_pose = [0,0]
 
         # Initialize task world
         self._setWorld()
@@ -103,6 +104,8 @@ class MapEnv(object):
         station_map = np.zeros_like(self._obstacle_map)
         station = np.ones((self.BIRTH[0],self.BIRTH[1]))
         station_map[row:row+self.BIRTH[0], col:col+self.BIRTH[1]] = station
+        # station_centroid 
+        self.water_pose = [row+self.BIRTH[0]//2, col+self.BIRTH[1]//2]
         # Intial position
         agent_map = np.zeros_like(self._obstacle_map)
         agent = np.zeros((self.BIRTH[0],self.BIRTH[1]))
