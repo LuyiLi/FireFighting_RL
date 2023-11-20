@@ -179,7 +179,8 @@ class AgentState(object):
                 if flammable_map[i, j]:
                     # if terrain is flammable
                     fir_map[i - top_left[0], j - top_left[1]] = fire_map[i, j]
-        state = [obs_map, fir_map, agt_map, fla_map, self.water_reserve]
+        full_map = np.stack([obs_map, fir_map, agt_map, fla_map])
+        state = [full_map, self.water_reserve]
         # Perhaps we need to select the following expression...
         # state = [[obs_map, fir_map, agt_map, fla_map], [self.water_reserve]]
         return state

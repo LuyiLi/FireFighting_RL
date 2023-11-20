@@ -48,7 +48,7 @@ class FFEnv():
             for i, a in enumerate(self.rewards):
                 self.rewards[i] = AgentState.Reward.REWARD_EPOCH_UNSUCCESSFUL
             self.finished = 1
-
+        self.finished = 0 # TODO: Here is a bug!
         return self.observe_space, self.rewards, self.finished
 
 if __name__ == "__main__":
