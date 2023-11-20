@@ -325,7 +325,9 @@ class MapEnv(object):
 
     def plotAgent(self):
         cmap = plt.matplotlib.colors.ListedColormap(['white', 'red'])
-        plt.figure(figsize=(self.SIZE[0], self.SIZE[1]))
+        # plt.figure(figsize=(self.SIZE[0], self.SIZE[1]))
+        # Above figure too big
+        plt.figure()
         plt.imshow(self.agent_map, cmap=cmap)
         plt.axis()
         plt.show()
@@ -372,7 +374,9 @@ class MapEnv(object):
     def plotAll(self):
         cmap = plt.matplotlib.colors.ListedColormap(['white', 'blue', 'red', 'lightgreen', 'black',
                                                      'yellow', 'yellow', 'darkgreen'])
-        plt.figure(figsize=(self.SIZE[0], self.SIZE[1]))
+        # plt.figure(figsize=(self.SIZE[0], self.SIZE[1]))
+        # Map too big to view properly
+        plt.figure()
         env = self.station_map + self.agent_map + \
             self.obstacle_map*4 + self.flammable_map*3
         # print(env)

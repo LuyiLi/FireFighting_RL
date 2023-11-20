@@ -4,7 +4,8 @@ from typing import Tuple
 import numpy as np
 import AgentState
 import MapEnv
-
+# import gymnasium as gym
+# from gymnasium import spaces
 
 
 class FFEnv():
@@ -43,12 +44,15 @@ class FFEnv():
             for i, a in enumerate(self.rewards):
                 self.rewards[i] = AgentState.Reward.REWARD_EPOCH_SUCCESS
             self.finished = 1
-
-        if np.sum(self.mapEnv.getHP()) < np.sum(self.mapEnv.getHPInit()) / 3:
+        elif np.sum(self.mapEnv.getHP()) < np.sum(self.mapEnv.getHPInit()) / 3:
             for i, a in enumerate(self.rewards):
                 self.rewards[i] = AgentState.Reward.REWARD_EPOCH_UNSUCCESSFUL
             self.finished = 1
-        self.finished = 0 # TODO: Here is a bug!
+        else:
+            self.finished = 0 # TODO: Here is a bug!
+        # print(np.sum(self.mapEnv.getHP()))
+        # print(np.sum(self.mapEnv.getHPInit()) / 3)
+        # print(self.mapEnv.getHP())
         return self.observe_space, self.rewards, self.finished
 
 if __name__ == "__main__":
@@ -61,9 +65,8 @@ if __name__ == "__main__":
     for i in range(5):
         for a in actions:
             a[0] = np.random.choice([0, 1, 2, 3, 4])
-            a[1] = np.random.choice([0, 1, 2, 3, 4, 5])
-            a[2] = np.random.choice([0, 1, 2, 3, 4])
-            a[3] = np.random.choice([0, 1])
+            a[1] = np.random.choice([0, 1])
+
 
 
         env.step(actions)
