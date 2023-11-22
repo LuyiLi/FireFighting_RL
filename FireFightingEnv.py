@@ -19,6 +19,7 @@ class FFEnv():
         self.reset()
 
     def reset(self, **kwargs):
+        self.mapEnv.reset()
         self.agents.clear()
         self.rewards = np.zeros(self.agent_num)
         self.observe_space.clear()
