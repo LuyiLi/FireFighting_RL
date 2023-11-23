@@ -13,16 +13,41 @@ water_range = 2
 
 
 class Reward(object):
-    REWARD_COLLISION_OBSTACLES = -1
-    REWARD_COLLISION_AGENTS = -1
-    REWARD_SUCCESSFUL_MOVEMENT = 0.05
+    REWARD_COLLISION_OBSTACLES = -0.5
+    REWARD_COLLISION_AGENTS = -0.5
+    REWARD_SUCCESSFUL_MOVEMENT = 0.1
     REWARD_WATER_SPRAY = -0.05
-    REWARD_FIRE_FOUGHT_MAGNIFICATION = 10
+    REWARD_FIRE_FOUGHT_MAGNIFICATION = 5
     REWARD_EPOCH_SUCCESS = 10
     REWARD_EPOCH_UNSUCCESSFUL = -5
-    REWARD_DO_NOTHING = -0.2
-    REWARD_WATER_DEPLETION = -0.5
+    REWARD_DO_NOTHING = -0.3
+    REWARD_WATER_DEPLETION = -0.3
 
+
+def extract_local_map(global_map, center_i, center_j, local_map_size, fill):
+    # 计算局部地图的起始和结束索引
+    start_row = max(0, center_i - local_map_size // 2)
+    end_row = min(global_map.shape[0], center_i + local_map_size // 2 + 1)
+    start_col = max(0, center_j - local_map_size // 2)
+    end_col = min(global_map.shape[1], center_j + local_map_size // 2 + 1)
+
+    # 初始化局部地图为零矩阵
+    if fill == 0:
+        local_map = np.zeros((local_map_size, local_map_size))
+    else:
+        local_map = np.ones((local_map_size, local_map_size))
+    
+
+    # 计算在局部地图中的起始和结束索引
+    local_start_row = local_map_size // 2 - (center_i - start_row)
+    local_end_row = local_start_row + (end_row - start_row)
+    local_start_col = local_map_size // 2 - (center_j - start_col)
+    local_end_col = local_start_col + (end_col - start_col)
+
+    # 将全局地图中的数据复制到局部地图中
+    local_map[local_start_row:local_end_row, local_start_col:local_end_col] = global_map[start_row:end_row, start_col:end_col]
+
+    return local_map
 
 class AgentState(object):
     def __init__(self, map_env: MapEnv, pos_x, pox_y):
@@ -33,7 +58,7 @@ class AgentState(object):
         self.bias_y = 0
         self.water_reserve = 10
         self.max_water_reserve = 10
-        self.observation_size = 11
+        self.observation_size = 5
         
 
     def step(self, action):
@@ -159,33 +184,41 @@ class AgentState(object):
         agents_map = self.map.getAgent()
         flammable_map = self.map.getFlammable()
 
-        top_left = (self.pos_x - self.observation_size // 2, self.pos_y - self.observation_size // 2)
-        bottom_right = (top_left[0] + self.observation_size, top_left[1] + self.observation_size)
-        obs_shape = (self.observation_size, self.observation_size)
+        # top_left = (self.pos_x - self.observation_size // 2, self.pos_y - self.observation_size // 2)
+        # bottom_right = (top_left[0] + self.observation_size, top_left[1] + self.observation_size)
+        # obs_shape = (self.observation_size, self.observation_size)
 
-        obs_map = np.zeros(obs_shape)
-        agt_map = np.zeros(obs_shape)
-        fir_map = np.zeros(obs_shape)
-        fla_map = np.zeros(obs_shape)
+        # obs_map = np.ones(obs_shape)
+        # agt_map = np.zeros(obs_shape)
+        # fir_map = np.zeros(obs_shape)
+        # fla_map = np.zeros(obs_shape)
 
-        for i in range(top_left[0], top_left[0] + self.observation_size):
-            for j in range(top_left[1], top_left[1] + self.observation_size):
-                if i >= self.map.SIZE[0] or i < 0 or j >= self.map.SIZE[1] or j < 0:
-                    # out of bounds, just treat as an obstacle
-                    obs_map[i - top_left[0], j - top_left[1]] = 1
-                    continue
-                if obstacle_map[i, j]:
-                    # obstacles
-                    obs_map[i - top_left[0], j - top_left[1]] = 1
-                if agents_map[i, j]:
-                    # other agent's position
-                    agt_map[i - top_left[0], j - top_left[1]] = agents_map[i, j]
-                if fire_map[i, j]:
-                    # check if there are fire
-                    fir_map[i - top_left[0], j - top_left[1]] = fire_map[i, j]
-                if flammable_map[i, j]:
-                    # if terrain is flammable
-                    fir_map[i - top_left[0], j - top_left[1]] = fire_map[i, j]
+        # for i in range(top_left[0], top_left[0] + self.observation_size):
+        #     for j in range(top_left[1], top_left[1] + self.observation_size):
+        #         if i >= self.map.SIZE[0] or i < 0 or j >= self.map.SIZE[1] or j < 0:
+        #             # out of bounds, just treat as an obstacle
+        #             obs_map[i - top_left[0], j - top_left[1]] = 1
+        #             continue
+        #         if obstacle_map[i, j]:
+        #             # obstacles
+        #             obs_map[i - top_left[0], j - top_left[1]] = 1
+        #         if agents_map[i, j]:
+        #             # other agent's position
+        #             agt_map[i - top_left[0], j - top_left[1]] = agents_map[i, j]
+        #         if fire_map[i, j]:
+        #             # check if there are fire
+        #             fir_map[i - top_left[0], j - top_left[1]] = fire_map[i, j]
+        #         if flammable_map[i, j]:
+        #             # if terrain is flammable
+        #             fir_map[i - top_left[0], j - top_left[1]] = fire_map[i, j]
+                    
+                
+        obs_map = extract_local_map(obstacle_map, self.pos_x, self.pos_y, self.observation_size, 1)
+        fir_map = extract_local_map(fire_map, self.pos_x, self.pos_y, self.observation_size, 0)
+        agt_map = extract_local_map(agents_map, self.pos_x, self.pos_y, self.observation_size, 0)
+        fla_map = extract_local_map(flammable_map, self.pos_x, self.pos_y, self.observation_size, 0)
+        agt_map[int(self.observation_size / 2)][int(self.observation_size / 2)] = 0
+        
         full_map = np.stack([obs_map, fir_map, agt_map, fla_map])
         state = [full_map, self.water_reserve]
         # Perhaps we need to select the following expression...
