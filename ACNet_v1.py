@@ -59,10 +59,10 @@ class ACNet(nn.Module):
         self.conv1b = nn.Conv2d(RNN_SIZE // 4, RNN_SIZE // 4, kernel_size=3, stride=1, padding=1)
         self.pool1 = nn.MaxPool2d(kernel_size=2)
         self.conv2 = nn.Conv2d(RNN_SIZE // 4, RNN_SIZE // 2, kernel_size=3, stride=1, padding=1)
-        self.conv2a = nn.Conv2d(RNN_SIZE // 2, RNN_SIZE // 2, kernel_size=3, stride=1, padding=1)
-        self.conv2b = nn.Conv2d(RNN_SIZE // 2, RNN_SIZE // 2, kernel_size=3, stride=1, padding=1)
+        self.conv2a = nn.Conv2d(RNN_SIZE // 2, RNN_SIZE // 2, kernel_size=3, stride=1,padding=1)
+        self.conv2b = nn.Conv2d(RNN_SIZE // 2, RNN_SIZE // 2, kernel_size=3, stride=1)
         self.pool2 = nn.MaxPool2d(kernel_size=2)
-        self.conv3 = nn.Conv2d(RNN_SIZE // 2, RNN_SIZE - GOAL_REPR_SIZE, kernel_size=2, stride=1)
+        self.conv3 = nn.Conv2d(RNN_SIZE // 2, RNN_SIZE - GOAL_REPR_SIZE, kernel_size=3, stride=1)
         self.flat_size = (RNN_SIZE - GOAL_REPR_SIZE) * GRID_SIZE * GRID_SIZE  # Update this size based on your GRID_SIZE
         # self.flat_size = batch_size
         self.fc0 = nn.Linear(1,GOAL_REPR_SIZE)
@@ -92,22 +92,23 @@ class ACNet(nn.Module):
     # during optimization. Returns tensor([[left0exp,right0exp]...]).
     def forward(self, input, water_res):
         # print(state)
-
-
+        #print(input.shape)
         conv1 = F.relu(self.conv1(input))
         conv1a = F.relu(self.conv1a(conv1))
         conv1b = F.relu(self.conv1b(conv1a))
-        pool1 = self.pool1(conv1b)
+        # pool1 = self.pool1(conv1b)
 
-        conv2 = F.relu(self.conv2(pool1))
+        conv2 = F.relu(self.conv2(conv1b))
         conv2a = F.relu(self.conv2a(conv2))
         conv2b = F.relu(self.conv2b(conv2a))
-        pool2 = self.pool2(conv2b)
+        # pool2 = self.pool2(conv2b)
 
-        conv3 = self.conv3(pool2)
-        conv3_shape = conv3.shape
+        conv3 = self.conv3(conv2b)
+        # print(conv3.shape)
         # flattened_size = conv3_shape[1] * conv3_shape[2] * conv3_shape[3]
+        # print(conv3)
         flat = conv3.view(-1, RNN_SIZE - GOAL_REPR_SIZE)
+        # print(flat) 
         water_layer = F.relu(self.fc0(water_res))
         
         # water_layer = torch.transpose(water_layer, 0, 1)
@@ -117,7 +118,7 @@ class ACNet(nn.Module):
         # print("water")
         # print(water_layer.shape)
         hidden_input = torch.cat([flat, water_layer], dim = 1)
-        # print(hidden_input)
+        # print(hidden_input.shape)
 
         h1 = F.relu(self.fc1(hidden_input))
         h2 = F.relu(self.fc2(h1)) 
@@ -134,9 +135,9 @@ class ACNet(nn.Module):
         # self.state_out = (lstm_state[0][:1, :], lstm_state[1][:1, :])
         rnn_out = lstm_out.view(-1, RNN_SIZE)
 
-        policy_layer = self.fc_policy(rnn_out)
-        self.policy = F.softmax(policy_layer, dim=1)
-
+        self.policy = self.fc_policy(rnn_out)
+        # self.policy = F.softmax(self.policy, dim=1)
+        # Uncomment the above if use L1 loss
         return self.policy
     
 

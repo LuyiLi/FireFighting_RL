@@ -10,7 +10,7 @@ import MapEnv
 
 class FFEnv():
     def __init__(self, agent_num):
-        self.mapEnv = MapEnv.MapEnv(BIRTH=(2, 3, agent_num), SIZE=(31,31))
+        self.mapEnv = MapEnv.MapEnv(BIRTH=(2, 3, agent_num), SIZE=(15,15))
         self.agent_num = agent_num
         self.agents = []
         self.rewards = np.zeros(agent_num)
@@ -68,8 +68,7 @@ if __name__ == "__main__":
             a[0] = np.random.choice([0, 1, 2, 3, 4])
             a[1] = np.random.choice([0, 1])
 
-
-
         env.step(actions)
-
+        
         env.mapEnv.plotAgent()
+        input("Press any key")
