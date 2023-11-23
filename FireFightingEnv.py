@@ -16,6 +16,8 @@ class FFEnv():
         self.rewards = np.zeros(agent_num)
         self.observe_space = []
         self.finished = 0
+        self.curr_step = 0
+        self.max_step = 200
         self.reset()
 
     def reset(self, **kwargs):
@@ -24,6 +26,7 @@ class FFEnv():
         self.rewards = np.zeros(self.agent_num)
         self.observe_space.clear()
         self.finished = 0
+        self.curr_step = 0
         init_pose = self.mapEnv.getInitPose()
         for i in range(self.agent_num):
             self.agents.append(AgentState.AgentState(self.mapEnv, init_pose[i][0], init_pose[i][1]))
@@ -40,12 +43,16 @@ class FFEnv():
             self.observe_space[i], self.rewards[i] = a.step(action[i])
 
         self.mapEnv.mapUpdate()
-
+        self.curr_step += 1
         if np.sum(self.mapEnv.getFire()) == 0:
             for i, a in enumerate(self.rewards):
                 self.rewards[i] = AgentState.Reward.REWARD_EPOCH_SUCCESS
             self.finished = 1
         elif np.sum(self.mapEnv.getHP()) < np.sum(self.mapEnv.getHPInit()) / 3:
+            for i, a in enumerate(self.rewards):
+                self.rewards[i] = AgentState.Reward.REWARD_EPOCH_UNSUCCESSFUL
+            self.finished = 1
+        elif self.curr_step > self.max_step:
             for i, a in enumerate(self.rewards):
                 self.rewards[i] = AgentState.Reward.REWARD_EPOCH_UNSUCCESSFUL
             self.finished = 1
