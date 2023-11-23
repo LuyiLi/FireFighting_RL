@@ -9,7 +9,7 @@ NORTH = 1
 SOUTH = 2
 EAST = 3
 WEST = 4
-water_range = 2
+water_range = 1
 
 
 class Reward(object):
@@ -17,11 +17,12 @@ class Reward(object):
     REWARD_COLLISION_AGENTS = -0.5
     REWARD_SUCCESSFUL_MOVEMENT = 0.1
     REWARD_WATER_SPRAY = -0.05
-    REWARD_FIRE_FOUGHT_MAGNIFICATION = 5
-    REWARD_EPOCH_SUCCESS = 10
-    REWARD_EPOCH_UNSUCCESSFUL = -5
-    REWARD_DO_NOTHING = -0.3
+    REWARD_FIRE_FOUGHT_MAGNIFICATION = 6
+    REWARD_EPOCH_SUCCESS = 1
+    REWARD_EPOCH_UNSUCCESSFUL = -1
+    REWARD_DO_NOTHING = -0.1
     REWARD_WATER_DEPLETION = -0.3
+    REWARD_WATER_REFILL = 0.3
 
 
 def extract_local_map(global_map, center_i, center_j, local_map_size, fill):
@@ -137,6 +138,8 @@ class AgentState(object):
             reward += Reward.REWARD_COLLISION_AGENTS
         
         if(self.map.station_map[self.pos_x][self.pos_y]):
+            if(self.water_reserve < self.max_water_reserve / 3):
+                reward += Reward.REWARD_WATER_REFILL * (self.max_water_reserve - self.water_reserve)
             self.water_reserve = self.max_water_reserve
         
         return move_result, reward

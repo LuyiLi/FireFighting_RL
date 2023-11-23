@@ -11,13 +11,22 @@ round_count = 0
 
 int_burning_tensity = 0.2  # Initial burning tensity of grid first catch fire
 spread_burning_tensity = 1.2  # The threshold to spread fire to adjacent grid
-spread_prob = 1          # Possibility of spreading
+spread_prob = 0.2         # Possibility of spreading
 max_burning_tensity = 2  # Maximun fire tensity
-burning_rate = 0.2  # Burning intensity increase by each round
+burning_rate = 0.1  # Burning intensity increase by each round
 
-hp_loss_multilplier = 1.0  # HP decrease by each round
-fall_prob = 0.5  # Probability of tree to fall down when HP < 1/3
+hp_loss_multilplier = 0.1  # HP decrease by each round
+fall_prob = 0.1  # Probability of tree to fall down when HP < 1/3
 
+
+# int_burning_tensity = 0.2  # Initial burning tensity of grid first catch fire
+# spread_burning_tensity = 0.6  # The threshold to spread fire to adjacent grid
+# spread_prob = 1         # Possibility of spreading
+# max_burning_tensity = 2  # Maximun fire tensity
+# burning_rate = 0.2  # Burning intensity increase by each round
+
+# hp_loss_multilplier = 1  # HP decrease by each round
+# fall_prob = 0.5  # Probability of tree to fall down when HP < 1/3
 
 # Map initialisation
 # obstacle_map = np.random.randint(1,size=(15, 15))
