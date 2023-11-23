@@ -23,6 +23,7 @@ class Reward(object):
     REWARD_DO_NOTHING = -0.1
     REWARD_WATER_DEPLETION = -0.3
     REWARD_WATER_REFILL = 0.3
+    REWARD_ON_FIRE = -1
 
 
 def extract_local_map(global_map, center_i, center_j, local_map_size, fill):
@@ -142,6 +143,9 @@ class AgentState(object):
                 reward += Reward.REWARD_WATER_REFILL * (self.max_water_reserve - self.water_reserve)
             self.water_reserve = self.max_water_reserve
         
+        if self.map.fire_map[self.pos_x][self.pos_y] != 0:
+            reward += Reward.REWARD_ON_FIRE
+            
         return move_result, reward
 
     def _move_to(self, x, y):
@@ -274,7 +278,7 @@ class AgentState(object):
         center_x = self.pos_x + dx * water_range + self.bias_x
         center_y = self.pos_y + dy * water_range + self.bias_y
 
-        reward = 0
+        reward = Reward.REWARD_WATER_SPRAY
         l = len(water_spray)
         spray_biased_x, spray_biased_y = int(center_x - l/2 + 0.5), int(center_y - l/2 + 0.5)
         for i in range(l):

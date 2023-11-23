@@ -136,7 +136,7 @@ class ACNet(nn.Module):
         rnn_out = lstm_out.view(-1, RNN_SIZE)
 
         self.policy = self.fc_policy(rnn_out)
-        # self.policy = F.softmax(self.policy, dim=1)
+        self.policy = F.softmax(self.policy, dim=1)
         # Uncomment the above if use L1 loss
         return self.policy
     
