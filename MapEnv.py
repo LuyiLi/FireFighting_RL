@@ -10,7 +10,7 @@ map_h = 15
 round_count = 0
 
 int_burning_tensity = 0.2  # Initial burning tensity of grid first catch fire
-spread_burning_tensity = 0.6  # The threshold to spread fire to adjacent grid
+spread_burning_tensity = 1.2  # The threshold to spread fire to adjacent grid
 spread_prob = 1          # Possibility of spreading
 max_burning_tensity = 2  # Maximun fire tensity
 burning_rate = 0.2  # Burning intensity increase by each round
