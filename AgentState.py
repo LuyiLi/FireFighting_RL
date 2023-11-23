@@ -16,11 +16,11 @@ class Reward(object):
     REWARD_COLLISION_OBSTACLES = -1
     REWARD_COLLISION_AGENTS = -1
     REWARD_SUCCESSFUL_MOVEMENT = 0.05
-    REWARD_WATER_SPRAY = -0.2
+    REWARD_WATER_SPRAY = -0.05
     REWARD_FIRE_FOUGHT_MAGNIFICATION = 1
     REWARD_EPOCH_SUCCESS = 10
     REWARD_EPOCH_UNSUCCESSFUL = -5
-    REWARD_DO_NOTHING = -0.05
+    REWARD_DO_NOTHING = -0.1
     REWARD_WATER_DEPLETION = -1
 
 
@@ -32,6 +32,7 @@ class AgentState(object):
         self.bias_x = 0
         self.bias_y = 0
         self.water_reserve = 10
+        self.max_water_reserve = 10
         self.observation_size = 11
         
 
@@ -84,14 +85,17 @@ class AgentState(object):
         reward = 0
         
         if direction == 0:
-            if self.pos_x == self.map.water_pose[0] and self.pos_y == self.map.water_pose[1]: # TODO: Change this to when water tank is full
-                reward = Reward.REWARD_DO_NOTHING
+            if self.water_reserve == self.max_water_reserve:
+                reward += Reward.REWARD_DO_NOTHING
+            
+            if self.pos_x == self.map.water_pose[0] and self.pos_y == self.map.water_pose[1]:
+                reward += Reward.REWARD_COLLISION_OBSTACLES
                 move_result = -1 
-                
             else:
                 a_s = astar.AStar()
                 #TODO: Check this
                 dx, dy = a_s.Run(self.map.fire_map + self.map.obstacle_map, [self.pos_x, self.pos_y], self.map.water_pose)
+                move_result = self._checkCollision(dx, dy, self.map.obstacle_map, self.map.agent_map)
         else:
             dx, dy = self._getXYDirection(direction)
             move_result = self._checkCollision(dx, dy, self.map.obstacle_map, self.map.agent_map)
@@ -101,12 +105,15 @@ class AgentState(object):
             self.pos_x += dx
             self.pos_y += dy
             self.map.agent_map[self.pos_x][self.pos_y] = 1
-            reward = Reward.REWARD_SUCCESSFUL_MOVEMENT
+            reward += Reward.REWARD_SUCCESSFUL_MOVEMENT
         elif move_result == -2:
-            reward = Reward.REWARD_COLLISION_OBSTACLES
+            reward += Reward.REWARD_COLLISION_OBSTACLES
         elif move_result == -3:
-            reward = Reward.REWARD_COLLISION_AGENTS
-        # TODO: Add water supply algorithm
+            reward += Reward.REWARD_COLLISION_AGENTS
+        
+        if(self.map.station_map[self.pos_x][self.pos_y]):
+            self.water_reserve = self.max_water_reserve
+        
         return move_result, reward
 
     def _move_to(self, x, y):
