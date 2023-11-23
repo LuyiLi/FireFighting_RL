@@ -257,70 +257,74 @@ class MapEnv(object):
 
     def mapUpdate(self):
 
-        # Calculate the natural influence of burning
-        self.hp_map = np.maximum(0, self.hp_map - self.fire_map * hp_loss_multilplier)
-        # fire increase by the defined rate if on fire
-        on_fire_condition = (self.hp_map > 0) & (self.fire_map > 0)
-        self.fire_map = np.where(on_fire_condition, np.minimum(max_burning_tensity, self.fire_map + burning_rate), self.fire_map)
-        # Fire stops when HP fall below 0
-        self.hp_map = np.where(on_fire_condition, self.hp_map, 0.0)
-        self.flammable_map[self.hp_map <= 0] = 0    # Grid become unflammable
+        # To calculate the natural influence of burning
+        for i in range(map_l):
+            for j in range(map_h):
 
-        # Calculate catching fire by adjacent grids with fire intensity > spread_burning_tensity
-        spread_condition = self.fire_map > spread_burning_tensity
-        spread_prob_condition = np.random.rand(*spread_condition.shape) < spread_prob
+                if self.fire_map[i][j] > 0:
 
-        dx = np.random.choice([-1, 0, 1], size=spread_condition.shape)
-        dy = np.random.choice([-1, 0, 1], size=spread_condition.shape)
+                    self.hp_map[i][j] = max(0, self.hp_map[i][j] - self.fire_map[i][j] * hp_loss_multilplier)
 
-        valid_indices = (spread_condition & spread_prob_condition &
-                         (np.tile(np.arange(map_l),(map_h,1)) + dx >= 0) &
-                         (np.tile(np.arange(map_l),(map_h,1)) + dx < map_l) &
-                         (np.tile(np.arange(map_h),(1,map_l)) + dy >= 0) &
-                         (np.tile(np.arange(map_h),(1,map_l)) + dy < map_h))
+                    if self.hp_map[i][j] > 0:
+                        # fire increase by the defined rate
+                        self.fire_map[i][j] = min(
+                            max_burning_tensity, self.fire_map[i][j] + burning_rate)
+                    else:
+                        # Fire stops when HP fall below 0
+                        self.hp_map[i][j] = 0.0
+                        self.fire_map[i][j] = 0.0
+                        self.flammable_map[i][j] = 0  # Grid become unflammable
 
-        i, j = np.where(valid_indices)
-        self.fire_map[i + dx[i, j], j + dy[i, j]] = np.minimum(
-            int_burning_tensity + self.fire_map[i + dx[i, j], j + dy[i, j]], max_burning_tensity)
-        
-        # Calculate the influence of the map when burning trees fall down
-        flammable_condition = self.flammable_map == 1 # Only trees will fall down, tress are flammable
-        obstacle_condition = self.obstacle_map == 1 # Only trees will fall down, tress are unpassable
-        hp_condition = self.hp_map < self.hp_map_init / 3   # Only when hp< 1/3 will fall down
-        fall_prob_condition = np.random.randint(0, 1, size=self.hp_map.shape) <= fall_prob
+                # To calculate catching fire by the adjacent grids which fire tensity> spread_burning_tensity
+                if self.fire_map[i][j] > spread_burning_tensity:
+                    if np.random.rand() < spread_prob:
+                        dx = np.random.choice([-1, 0, 1])
+                        dy = np.random.choice([-1, 0, 1])
+                        if i + dx >= 0 and i + dx < map_l and j + dy >= 0 and j + dy < map_h:
+                            self.fire_map[i+dx][j + dy] = min(int_burning_tensity + self.fire_map[i+dx][j + dy], max_burning_tensity)
 
-        fall_direction = np.random.randint(1, 4, size=self.hp_map.shape)
+        # To calculate the influence of map when burning trees fall down
+        for i in range(map_l):
+            for j in range(map_h):
 
-        i, j = np.where(flammable_condition & obstacle_condition & hp_condition & fall_prob_condition)
+                # Only trees will fall down, tress are flammable
+                if self.flammable_map[i][j] != 1:
+                    continue
 
-        north_condition = (fall_direction == 1) & (j - 1 >= 0)
-        east_condition = (fall_direction == 2) & (i + 1 <= map_l - 1)
-        south_condition = (fall_direction == 3) & (j + 1 <= map_h - 1)
-        west_condition = (fall_direction == 4) & (i - 1 >= 0)
+                # Only trees will fall down, tress are unpassable
+                elif self.obstacle_map[i][j] != 1:
+                    continue
 
-        self.obstacle_map[i[north_condition], j[north_condition] - 1] = 1
-        self.fire_map[i[north_condition], j[north_condition] - 1] = np.where(
-            (self.flammable_map[i[north_condition], j[north_condition] - 1] != 0) &
-            (self.fire_map[i[north_condition], j[north_condition] - 1] == 0),
-            int_burning_tensity, self.fire_map[i[north_condition], j[north_condition] - 1])
+                elif self.hp_map[i][j] >= self.hp_map_init[i][j] / 3:  # Only when hp< 1/3 will fall down
+                    continue
 
-        self.obstacle_map[i[east_condition] + 1, j[east_condition]] = 1
-        self.fire_map[i[east_condition] + 1, j[east_condition]] = np.where(
-            (self.flammable_map[i[east_condition] + 1, j[east_condition]] != 0) &
-            (self.fire_map[i[east_condition] + 1, j[east_condition]] == 0),
-            int_burning_tensity, self.fire_map[i[east_condition] + 1, j[east_condition]])
+                # Consider fall down probability
+                elif np.random.randint(0, 1, size=1) <= fall_prob:
 
-        self.obstacle_map[i[south_condition], j[south_condition] + 1] = 1
-        self.fire_map[i[south_condition], j[south_condition] + 1] = np.where(
-            (self.flammable_map[i[south_condition], j[south_condition] + 1] != 0) &
-            (self.fire_map[i[south_condition], j[south_condition] + 1] == 0),
-            int_burning_tensity, self.fire_map[i[south_condition], j[south_condition] + 1])
+                    # Randomize fall down direction: 1-north, 2-east, 3-south, 4-west
+                    fall_direction = np.random.randint(1, 4, size=1)
 
-        self.obstacle_map[i[west_condition] - 1, j[west_condition]] = 1
-        self.fire_map[i[west_condition] - 1, j[west_condition]] = np.where(
-            (self.flammable_map[i[west_condition] - 1, j[west_condition]] != 0) &
-            (self.fire_map[i[west_condition] - 1, j[west_condition]] == 0),
-            int_burning_tensity, self.fire_map[i[west_condition] - 1, j[west_condition]])
+                    if fall_direction == 1 and j - 1 >= 0:
+                        self.obstacle_map[i][j - 1] = 1
+                        if self.flammable_map[i][j - 1] != 0 and self.fire_map[i][j - 1] == 0:
+                            self.fire_map[i][j - 1] = int_burning_tensity
+
+                    elif fall_direction == 2 and i + 1 <= map_l - 1:
+                        self.obstacle_map[i + 1][j] = 1
+                        if self.flammable_map[i + 1][j] != 0 and self.fire_map[i + 1][j] == 0:
+                            self.fire_map[i + 1][j] = int_burning_tensity
+
+                    elif fall_direction == 3 and j + 1 <= map_h - 1:
+                        self.obstacle_map[i][j + 1] = 1
+                        if self.flammable_map[i][j + 1] != 0 and self.fire_map[i][j + 1] == 0:
+                            self.fire_map[i][j + 1] = int_burning_tensity
+
+                    elif fall_direction == 4 and i - 1 >= 0:
+                        self.obstacle_map[i - 1][j] = 1
+                        if self.flammable_map[i - 1][j] != 0 and self.fire_map[i - 1][j] == 0:
+                            self.fire_map[i - 1][j] = int_burning_tensity
+
+
 
     # Plot map
     def plotObstacle(self):
@@ -457,8 +461,9 @@ if __name__ == "__main__":
 
     # MapEnv will return self.obstacle_map,  self.agent_map, self.station_map, self.flammable_map, self.hp_map, self.fire_map
     obstacle_map, agent_map, station_map, flammable_map, hp_map, fire_map = env.getAll()
-    for r in range(2):
-        # env.mapUpdate()
+    for r in range(100):
+        env.mapUpdate()
         print(env.getInitPose())
         env.plotAll()
+        env.plotFireMap()
         # env.plotAll()
