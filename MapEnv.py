@@ -409,6 +409,22 @@ class MapEnv(object):
         plt.close()
         buf.seek(0)
         return imageio.imread(buf)
+    
+    def figFireAgent(self):
+        plt.imshow(self.fire_map, cmap='hot', interpolation='nearest', origin='lower', aspect='auto')
+        plt.colorbar(label='Burning Intensity')
+        y_station, x_station = np.where(self.station_map == 1)
+        plt.scatter(x_station, y_station, c='blue', marker='s', s=50, alpha=0.5)
+        y_agent, x_agent = np.where(self.agent_map == 1)
+        plt.scatter(x_agent, y_agent, c='green', marker='o', s=20, alpha=1)
+        vmin, vmax = self.fire_map.min(), self.fire_map.max()
+        plt.clim(vmin, vmax)
+        plt.title('Fire Map')
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close()
+        buf.seek(0)
+        return imageio.imread(buf)
 
 if __name__ == "__main__":
     env = MapEnv()  # Map initialization
