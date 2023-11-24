@@ -78,7 +78,7 @@ The action space comprised numerous dimensions of actions initially, resulting i
 After a discussion with our professor, we made a significant adjustment, reducing the number of inputs for the agents to a more reasonable number of around 10 actions, that is, 4 directions with 2 motivations (moving/spraying water), staying, and go back to water supply station via A* algorithm.
 
 ### Usage
-For learning agent, please check `DeepQLearning.ipynb` to train the model. And to evaluate the model performance trained following Q-Learning, visualizing the fire spreading tend and agent actions, please run `eval_DQN.ipynb`.
+For learning agent, please check `DeepQLearning.ipynb` `Policy Gradiant.ipynb` `ActorCritic.ipynb` to train the corresponding model. And to evaluate the model performance trained following Q-Learning, visualizing the fire spreading tend and agent actions, please run `eval.ipynb`. By far, run6 and run8 of DQN is our best results.
 
 <p align="center">
     <img src="figs/fire_agent6.gif" alt="network">
