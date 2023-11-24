@@ -70,7 +70,7 @@ The network architecture is defined as follows: the input map tensors are fed in
 
 ## Learning Agent
 
-The agent observation range is 7 * 7, and the size of the environment map is 15 * 15. 
+The agent observation range is 5 * 5, and the size of the environment map is 15 * 15. 
 
 ### Action Space
 The action space comprised numerous dimensions of actions initially, resulting in a space with approximately 300 possible actions.
