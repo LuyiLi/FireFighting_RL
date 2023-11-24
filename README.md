@@ -62,10 +62,10 @@ Consequently, despite the considerable effort required for reconstruction, we ch
 
 
 ### Neural Network Structures
-The network architecture is defined as follows: the input map tensors are fed into convolutional layers (`conv1`, `conv2`, `conv3`). For remaining water, . These layers work in tandem to process the input data, and at each step of the CNN, the data is transformed and subsequently flattened. The structure of our network is shown as follows.
+The network architecture is defined as follows: the input map tensors are fed into convolutional layers (`conv1`, `conv2`, `conv3`). For remaining water, a fully connected layer is connected with it. These layers work in tandem to process the input data, and at each step of the CNN, the data is transformed and subsequently flattened. The structure of our network is shown as follows.
 
 <p align="center">
-    <img src="figs/Network.jpg" alt="network">
+    <img src="figs/Network.png" alt="network">
 </p>
 
 ## Learning Agent
@@ -75,19 +75,25 @@ The agent observation range is 7 * 7, and the size of the environment map is 15 
 ### Action Space
 The action space comprised numerous dimensions of actions initially, resulting in a space with approximately 300 possible actions.
 
-After a discussion with our professor, we made a significant adjustment, reducing the number of inputs for the agents to a more reasonable number of around 10 actions, that is, 5 directions and 2 motivation.
+After a discussion with our professor, we made a significant adjustment, reducing the number of inputs for the agents to a more reasonable number of around 10 actions, that is, 4 directions with 2 motivations (moving/spraying water), staying, and go back to water supply station via A* algorithm.
 
 ### Usage
-For learning agent, please check `TestNN_v1,ipynb` to train the model. And for evaluation the model performance trained following Q-Learning and visualize the fire spreading tend and agent actions, please run `eval_DQN.ipynb`.
+For learning agent, please check `DeepQLearning.ipynb` to train the model. And to evaluate the model performance trained following Q-Learning, visualizing the fire spreading tend and agent actions, please run `eval_DQN.ipynb`.
 
 <p align="center">
     <img src="figs/fire_agent6.gif" alt="network">
 </p>
 
+
+We also impletment Actor-Critic method and Policy Gradiant method. PLease run `ActorCritic.ipynb` and `Policy Gradiant.ipynb` are for model training, respectively. For the training of the two models mentioned above, please refer to the comments in the `eval.ipynb `.
+
+An example for Actor-Critic method.
 <p align="center">
     <img src="figs/fire_agentAC8.gif" alt="network">
 </p>
 
+
+An example for Policy Gradiant method.
 <p align="center">
     <img src="figs/fire_agentPG8.gif" alt="network">
 </p>
