@@ -38,7 +38,13 @@ In accordance with TA's suggestions and our actual needs, we continuously enhanc
 
 Our environmental visualization has been fully tested in `TestEnv.ipynb` and has been implemented in the subsequent procedures. During our test, some random actions were executed for several rounds, and the GIFs showing the agent state variation have been generated.
 
-![Environmental Change Visualization](environment.gif)
+An example of environmental variation.
+
+<p align="center">
+    <img src="environment.gif" alt="Environmental Change Visualization">
+</p>
+
+An example of fire spreading and agent state.
 
 <p align="center">
     <img src="fire_agent.gif" alt="Fire Intensity Change Visualization">
@@ -46,8 +52,6 @@ Our environmental visualization has been fully tested in `TestEnv.ipynb` and has
 
 
 ## Neural Network
-
-
 
 ### Neural Network Improvements
 We have constructed two networks with the same architecture, `ACNet` and `ACNet_pytorch`, based on `TensorFlow` and `PyTorch`, respectively. During the initial testing phase, we utilized the TensorFlow-based network and encountered challenges related to CUDA compatibility, limiting us to training the model solely on the CPU of our `RTX 3080` laptop.
