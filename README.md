@@ -18,12 +18,12 @@ Considering the dynamic changes in the environment, the complexity of the proble
 To configure the python interpreter, please create a virtual environment and install the required packages described in `requirements.txt`.
 
 ```
-conda create -n firefight_env python=3.9
+conda create -n firefight_env python=3.7.16
 conda activate firefight_env
 pip install -r requirements.txt
 ```
 
-Please be aware that a version of `torch` higher than `1.13.1` is acceptable. We have successfully tested our program with `torch 2.1.0`, and it performed as expected. However, it is important to note that a version of `torch` lower than `1.13.1`may not work correctly. For example, our testing with `torch 1.10.1` resulted in a failure to execute the program.
+Please be aware that a version of `torch` higher than `1.13.1` is acceptable. We have successfully tested our program with `torch 2.1.0`, and it performed as expected. However, it is important to note that a version of `torch` lower than `1.13.1`may not work correctly. For example, our testing with `torch 1.10.1` resulted in a failure to execute the program. Refer to requirements.txt to see the training environment.
 
 Our code can be deployed on `Ubuntu 18.04`and `Ubuntu 20.04`. The GPU of our training lattop is `NVIDIA GeForce RTX 3080`, and the CUDA version is `11.3`.
 
