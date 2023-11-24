@@ -422,6 +422,23 @@ class MapEnv(object):
         buf.seek(0)
         return imageio.imread(buf)
     
+    def figEnvAgent(self):    
+        cmap = plt.matplotlib.colors.ListedColormap(
+            ['white', 'lightgreen', 'black', 'darkgreen'])
+        plt.figure(figsize=(self.SIZE[0], self.SIZE[1]))
+        env = self.obstacle_map * 2 + self.flammable_map
+        plt.imshow(env, cmap=cmap)
+        y_station, x_station = np.where(self.station_map == 1)
+        plt.scatter(x_station, y_station, c='blue', marker='s', s=50, alpha=0.5)
+        y_agent, x_agent = np.where(self.agent_map == 1)
+        plt.scatter(x_agent, y_agent, c='green', marker='o', s=20, alpha=1)
+        plt.axis()
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close()
+        buf.seek(0)
+        return imageio.imread(buf)
+    
     def figFireAgent(self):
         plt.imshow(self.fire_map, cmap='hot', interpolation='nearest', origin='lower', aspect='auto')
         plt.colorbar(label='Burning Intensity')
