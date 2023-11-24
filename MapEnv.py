@@ -267,8 +267,8 @@ class MapEnv(object):
         valid_indices = (spread_condition & spread_prob_condition &
                          (np.tile(np.arange(map_l),(map_h,1)) + dx >= 0) &
                          (np.tile(np.arange(map_l),(map_h,1)) + dx < map_l) &
-                         (np.tile(np.arange(map_h),(1,map_l)) + dy >= 0) &
-                         (np.tile(np.arange(map_h),(1,map_l)) + dy < map_h))
+                         (np.tile(np.arange(map_h),(map_l,1)) + dy >= 0) &
+                         (np.tile(np.arange(map_h),(map_l,1)) + dy < map_h))
 
         i, j = np.where(valid_indices)
         self.fire_map[i + dx[i, j], j + dy[i, j]] = np.minimum(
@@ -284,7 +284,7 @@ class MapEnv(object):
 
         i, j = np.where(flammable_condition & obstacle_condition & hp_condition & fall_prob_condition)
 
-        north_condition = (fall_direction == 1) & (j - 1 >= 0)
+        north_condition = (fall_direction == 1) & ((np.tile(j),() -1 >= 0)
         east_condition = (fall_direction == 2) & (i + 1 <= map_l - 1)
         south_condition = (fall_direction == 3) & (j + 1 <= map_h - 1)
         west_condition = (fall_direction == 4) & (i - 1 >= 0)
