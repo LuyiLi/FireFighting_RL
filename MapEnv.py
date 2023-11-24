@@ -283,11 +283,19 @@ class MapEnv(object):
         fall_direction = np.random.randint(1, 4, size=self.hp_map.shape)
 
         i, j = np.where(flammable_condition & obstacle_condition & hp_condition & fall_prob_condition)
+        bool_matrix1 = np.ones((map_l, map_h), dtype=bool)
+        bool_matrix2 = np.ones((map_l, map_h), dtype=bool)
+        bool_matrix3 = np.ones((map_l, map_h), dtype=bool)
+        bool_matrix4 = np.ones((map_l, map_h), dtype=bool)
+        bool_matrix1[0, :] = False
+        bool_matrix2[-1, :] = False
+        bool_matrix3[:, 0] = False
+        bool_matrix4[:, -1] = False
 
-        north_condition = (fall_direction == 1) & ((np.tile(j),() -1 >= 0)
-        east_condition = (fall_direction == 2) & (i + 1 <= map_l - 1)
-        south_condition = (fall_direction == 3) & (j + 1 <= map_h - 1)
-        west_condition = (fall_direction == 4) & (i - 1 >= 0)
+        north_condition = (fall_direction == 1) & (bool_matrix1) 
+        east_condition = (fall_direction == 2) & (bool_matrix4)
+        south_condition = (fall_direction == 3) & (bool_matrix2)
+        west_condition = (fall_direction == 4) & (bool_matrix3)
 
         self.obstacle_map[i[north_condition], j[north_condition] - 1] = 1
         self.fire_map[i[north_condition], j[north_condition] - 1] = np.where(
