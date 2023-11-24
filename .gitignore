@@ -22,6 +22,8 @@ var/
 wheels/
 share/python-wheels/
 logs/
+logsAC/
+logsPG/
 results/
 *.egg-info/
 .installed.cfg
