@@ -38,11 +38,12 @@ In accordance with TA's suggestions and our actual needs, we continuously enhanc
 
 Our environmental visualization has been fully tested in `TestEnv.ipynb` and has been implemented in the subsequent procedures. During our test, some random actions were executed for several rounds, and the GIFs showing the agent state variation have been generated.
 
+![Environmental Change Visualization](environment.gif)
+
 <p align="center">
     <img src="fire_agent.gif" alt="Fire Intensity Change Visualization">
 </p>
 
-![Environmental Change Visualization](environment.gif)
 
 ## Neural Network
 
