@@ -388,7 +388,7 @@ class MapEnv(object):
     def figEnv(self):    
         cmap = plt.matplotlib.colors.ListedColormap(
             ['white', 'lightgreen', 'black', 'darkgreen'])
-        plt.figure(figsize=(self.SIZE[0], self.SIZE[1]))
+        plt.figure()
         env = self.obstacle_map * 2 + self.flammable_map
         plt.imshow(env, cmap=cmap)
         plt.axis()
@@ -420,6 +420,24 @@ class MapEnv(object):
         vmin, vmax = self.fire_map.min(), self.fire_map.max()
         plt.clim(vmin, vmax)
         plt.title('Fire Map')
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close()
+        buf.seek(0)
+        return imageio.imread(buf)
+    
+    def figEnvAgent(self):
+        cmap = plt.matplotlib.colors.ListedColormap(
+            ['white', 'lightgreen', 'black', 'darkgreen'])
+        plt.figure()
+        env = self.obstacle_map * 2 + self.flammable_map
+        plt.imshow(env, cmap=cmap)
+        y_station, x_station = np.where(self.station_map == 1)
+        plt.scatter(x_station, y_station, c='blue', marker='s', s=5000, alpha=0.5)
+        y_agent, x_agent = np.where(self.agent_map == 1)
+        plt.scatter(x_agent, y_agent, c='green', marker='o', s=2000, alpha=1)
+        plt.title('Environment Map')
+        plt.axis()
         buf = io.BytesIO()
         plt.savefig(buf, format='png')
         plt.close()
