@@ -1,4 +1,5 @@
 # requirements.txt
+python_version == 3.7.16
 _libgcc_mutex==0.1
 _openmp_mutex==4.5
 absl-py==2.0.0
