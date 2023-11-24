@@ -31,7 +31,7 @@ Our code can be deployed on `Ubuntu 18.04`and `Ubuntu 20.04`. The GPU of our tra
 Our environment map is regenerated after each reset. In the figure below, black grids represent obstacles, green grids represent trees, light green grids represent grass, white grids represent sand, blue grids represent water supply stations, and red grids represent agents.
 
 <p align="center">
-    <img src="Env.png" alt="EnvInit">
+    <img src="figs/Env.png" alt="EnvInit">
 </p>
 
 In accordance with TA's suggestions and our actual needs, we continuously enhance the visualization effects of our environment.
@@ -41,13 +41,13 @@ Our environmental visualization has been fully tested in `TestEnv.ipynb` and has
 An example of environmental variation.
 
 <p align="center">
-    <img src="environment.gif" alt="Environmental Change Visualization">
+    <img src="figs/environment.gif" alt="Environmental Change Visualization">
 </p>
 
 An example of fire spreading and agent state.
 
 <p align="center">
-    <img src="fire_agent.gif" alt="Fire Intensity Change Visualization">
+    <img src="figs/fire_agent.gif" alt="Fire Intensity Change Visualization">
 </p>
 
 
@@ -62,7 +62,7 @@ Consequently, despite the considerable effort required for reconstruction, we ch
 
 
 ### Neural Network Structures
-The network architecture is defined as follows: the input tensors are fed into convolutional layers (`conv1`, `conv2`, `conv3`) and max-pooling layers (`pool1`, `pool2`). These layers work in tandem to process the input data, and at each step of the CNN, the data is transformed and subsequently flattened. The structure of our network is shown as follows.
+The network architecture is defined as follows: the input map tensors are fed into convolutional layers. These layers work in tandem to process the input data, and at each step of the CNN, the data is transformed and subsequently flattened. The structure of our network is shown as follows.
 
 <p align="center">
     <img src="Network.jpg" alt="network">
@@ -70,3 +70,6 @@ The network architecture is defined as follows: the input tensors are fed into c
 
 ## Learning Agent
 
+The agent observation range is 7 * 7, and the size of the map is 15 * 15. 
+
+For learning agent, please check `TestNN_v1,ipynb` to train the model. And for evaluation the model performance and visualize the fire spreading tend and agent actions, please run `eval.ipynb`.
