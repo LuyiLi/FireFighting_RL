@@ -60,5 +60,9 @@ Consequently, despite the considerable effort required for reconstruction, we ch
 ### Neural Network Structures
 The network architecture is defined as follows: the input tensors are fed into convolutional layers (`conv1`, `conv2`, `conv3`) and max-pooling layers (`pool1`, `pool2`). These layers work in tandem to process the input data, and at each step of the CNN, the data is transformed and subsequently flattened. The structure of our network is shown as follows.
 
+<p align="center">
+    <img src="Network.jpg" alt="network">
+</p>
+
 ## Learning Agent
 
