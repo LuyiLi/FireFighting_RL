@@ -361,7 +361,7 @@ class MapEnv(object):
     def plotEnvMap(self):
         cmap = plt.matplotlib.colors.ListedColormap(
             ['white', 'lightgreen', 'black', 'darkgreen'])
-        plt.figure(figsize=(self.SIZE[0], self.SIZE[1]))
+        plt.figure()
         env = self.obstacle_map * 2 + self.flammable_map
         plt.imshow(env, cmap=cmap)
         plt.axis()
